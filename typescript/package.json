@@ -1,0 +1,14 @@
+{
+  "name": "super-cli",
+  "version": "1.0.0",
+  "description": "Send a prompt to an OpenAI-compatible chat completions API",
+  "scripts": {
+    "start": "npx tsx src/main.ts",
+    "test": "node --import tsx --test src/main.test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^25.2.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
