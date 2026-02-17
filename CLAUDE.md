@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Multi-language repository implementing simple CLI tools that send prompts to OpenAI-compatible chat completions APIs. Each language lives in its own top-level directory. Rust and Go are implemented; Python, TypeScript, and C++ are placeholders.
+Multi-language repository implementing simple CLI tools that send prompts to OpenAI-compatible chat completions APIs. Each language lives in its own top-level directory. Rust, Go, and Python are implemented; TypeScript and C++ are placeholders.
 
 All implementations should follow the same pattern: read a prompt from stdin, call an OpenAI-compatible `/chat/completions` endpoint, and print the response to stdout. CLI arguments: `--base-url`, `--model`, `--api-key` (env var name).
 
@@ -48,6 +48,22 @@ go test -v ./go/...
 ### Architecture
 
 Single-file implementation in `go/main.go` (module `super_cli`). Uses only standard library: `flag` for CLI args, `net/http` for HTTP, `encoding/json` for JSON. Tests in `go/main_test.go` use `net/http/httptest` for mock API server.
+
+## Python (`python/`)
+
+### Run and Test
+
+```bash
+# Run (reads prompt from stdin)
+echo "hello" | python3 python/super_cli.py --base-url https://api.anthropic.com/v1 --model claude-haiku-4-5 --api-key ANTHROPIC_API_KEY
+
+# Run tests
+python3 -m unittest python/test_super -v
+```
+
+### Architecture
+
+Single-file implementation in `python/super_cli.py`. Uses only standard library: `argparse` for CLI args, `urllib.request` for HTTP, `json` for serialization. Tests in `python/test_super.py` use `http.server.HTTPServer` with a threaded fake handler.
 
 ## Conventions
 
