@@ -8,6 +8,16 @@ Multi-language repository implementing simple CLI tools that send prompts to Ope
 
 All implementations should follow the same pattern: read a prompt from stdin, call an OpenAI-compatible `/chat/completions` endpoint, and print the response to stdout. CLI arguments: `--base-url`, `--model`, `--api-key` (env var name).
 
+## Top-Level Makefile
+
+```bash
+make          # Build all languages (except Python, which needs no build)
+make test     # Build and run tests for all languages
+make clean    # Clean build artifacts for all languages
+```
+
+Per-language targets: `build-{rust,go,python,typescript,cpp}`, `test-{rust,go,python,typescript,cpp}`, `clean-{rust,go,python,typescript,cpp}`. Each language directory has its own Makefile with `all`, `test`, and `clean` targets; the top-level Makefile delegates to them via `make -C`.
+
 ## Rust (`rust/`)
 
 ### Build and Run
