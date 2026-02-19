@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Multi-language repository implementing simple CLI tools that send prompts to OpenAI-compatible chat completions APIs. Each language lives in its own top-level directory. Rust, Go, Python, and TypeScript are implemented; C++ is a placeholder.
+Multi-language repository implementing simple CLI tools that send prompts to OpenAI-compatible chat completions APIs. Each language lives in its own top-level directory. Rust, Go, Python, TypeScript, and C++ are all implemented.
 
 All implementations should follow the same pattern: read a prompt from stdin, call an OpenAI-compatible `/chat/completions` endpoint, and print the response to stdout. CLI arguments: `--base-url`, `--model`, `--api-key` (env var name).
 
@@ -83,6 +83,25 @@ npm test
 ### Architecture
 
 Single-file implementation in `typescript/src/main.ts`. Uses `tsx` as the runner (dev dependency). All runtime code uses Node.js built-ins only: `util.parseArgs` for CLI args, `node:http`/`node:https` for HTTP, JSON for serialization. Tests in `src/main.test.ts` use `node:test` with a real `http.createServer`.
+
+## C++ (`cpp/`)
+
+### Build, Run, and Test
+
+```bash
+# Build (from cpp/)
+cd cpp && make
+
+# Run (reads prompt from stdin)
+echo "hello" | ./super --base-url https://api.anthropic.com/v1 --model claude-haiku-4-5 --api-key ANTHROPIC_API_KEY
+
+# Run tests
+make test
+```
+
+### Architecture
+
+Split across `cpp/src/super.h` (declarations), `cpp/src/super.cpp` (implementation), and `cpp/src/main.cpp` (entry point). Uses only C++17 standard library and POSIX sockets (`getaddrinfo`, `socket`, `connect`, `read`, `write`) for HTTP. Hand-rolled JSON serialization and parsing for the known request/response structures. Tests in `cpp/src/test_super.cpp` use `fork()` to spawn a POSIX socket fake server.
 
 ## Conventions
 

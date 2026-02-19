@@ -26,3 +26,11 @@ add the typescript implementation.
 npm install -D tsx.
 Run: npx tsx src/main.ts.
 ```
+
+add the c++ implementation.  
+- it is important that the code have the same functionality but it doesn't have to be strictly modeled after the rust implementation
+- it should have a similar structure with a main function that gathers command line arguments and  a functiuon that executes the query.
+- it should be idiomatic c++ code. 
+- use standard libraries. use POSIX compatible network access. don't use other networking libraries 
+- use the superpower skill if that makes sense   
+- include tests but keep them simple. don't use an elaborate test harness 
