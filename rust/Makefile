@@ -3,8 +3,8 @@
 all:
 	cargo build
 
-test: all
-	@echo "No tests configured"
+test:
+	cargo test
 
 clean:
 	cargo clean

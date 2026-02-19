@@ -20,7 +20,7 @@ Per-language targets: `build-{rust,go,python,typescript,cpp}`, `test-{rust,go,py
 
 ## Rust (`rust/`)
 
-### Build and Run
+### Build, Run, and Test
 
 ```bash
 # Build
@@ -34,11 +34,14 @@ echo "hello" | cargo run --manifest-path rust/Cargo.toml -- \
 
 # Or from within rust/
 cd rust && echo "hello" | cargo run -- --base-url https://api.anthropic.com/v1 --model claude-haiku-4-5 --api-key ANTHROPIC_API_KEY
+
+# Run tests
+cd rust && cargo test
 ```
 
 ### Architecture
 
-Single-file implementation in `rust/src/main.rs`. Binary name is `super` (package `super_cli`). Uses `clap` (derive) for CLI args, `reqwest` (blocking + rustls-tls) for HTTP, `serde` for JSON serialization. No tests or lint config yet.
+Single-file implementation in `rust/src/main.rs`. Binary name is `super` (package `super_cli`). Uses `clap` (derive) for CLI args, `reqwest` (blocking + rustls-tls) for HTTP, `serde` for JSON serialization. Tests use `std::net::TcpListener` as a fake HTTP server.
 
 ## Go (`go/`)
 

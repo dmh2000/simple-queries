@@ -18,24 +18,24 @@ struct Args {
     api_key: String,
 }
 
-#[derive(Serialize)]
+#[derive(Debug, Serialize)]
 struct ChatRequest {
     model: String,
     messages: Vec<Message>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Message {
     role: String,
     content: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct ChatResponse {
     choices: Vec<Choice>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct Choice {
     message: Message,
 }
@@ -70,6 +70,99 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::{BufRead, BufReader, Write};
+    use std::net::TcpListener;
+
+    fn start_fake_server(status: u16, body: &str) -> String {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = listener.local_addr().unwrap().port();
+        let body = body.to_string();
+
+        std::thread::spawn(move || {
+            let (mut stream, _) = listener.accept().unwrap();
+            let mut reader = BufReader::new(stream.try_clone().unwrap());
+
+            // Read request headers until empty line
+            let mut content_length = 0usize;
+            loop {
+                let mut line = String::new();
+                reader.read_line(&mut line).unwrap();
+                if let Some(len) = line.strip_prefix("Content-Length: ") {
+                    content_length = len.trim().parse().unwrap();
+                }
+                if line.trim().is_empty() {
+                    break;
+                }
+            }
+
+            // Read request body
+            let mut req_body = vec![0u8; content_length];
+            reader.read_exact(&mut req_body).unwrap();
+
+            let status_text = if status == 200 { "OK" } else { "Error" };
+            let response = format!(
+                "HTTP/1.1 {} {}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
+                status, status_text, body.len(), body
+            );
+            stream.write_all(response.as_bytes()).unwrap();
+        });
+
+        format!("http://127.0.0.1:{}", port)
+    }
+
+    fn make_args(base_url: &str, model: &str) -> Args {
+        Args {
+            base_url: base_url.to_string(),
+            model: model.to_string(),
+            api_key: "TEST_KEY".to_string(),
+        }
+    }
+
+    #[test]
+    fn test_execute_query_success() {
+        let body = r#"{"choices":[{"message":{"role":"assistant","content":"Hi there!"}}]}"#;
+        let base_url = start_fake_server(200, body);
+        let args = make_args(&base_url, "test-model");
+
+        let result = execute_query(&args, "test-key", "hello").unwrap();
+        assert_eq!(result.choices[0].message.content, "Hi there!");
+        assert_eq!(result.choices[0].message.role, "assistant");
+    }
+
+    #[test]
+    fn test_execute_query_api_error() {
+        let body = r#"{"error":"invalid api key"}"#;
+        let base_url = start_fake_server(401, body);
+        let args = make_args(&base_url, "test-model");
+
+        let err = execute_query(&args, "bad-key", "hello").unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("401"), "expected '401' in error: {}", msg);
+    }
+
+    #[test]
+    fn test_execute_query_empty_choices() {
+        let body = r#"{"choices":[]}"#;
+        let base_url = start_fake_server(200, body);
+        let args = make_args(&base_url, "test-model");
+
+        let result = execute_query(&args, "test-key", "hello").unwrap();
+        assert!(result.choices.is_empty());
+    }
+
+    #[test]
+    fn test_execute_query_invalid_json() {
+        let base_url = start_fake_server(200, "not json");
+        let args = make_args(&base_url, "test-model");
+
+        let result = execute_query(&args, "test-key", "hello");
+        assert!(result.is_err());
+    }
 }
 
 fn execute_query(
